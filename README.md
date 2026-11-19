@@ -2,9 +2,9 @@
 
 An interactive, self-updating web map visualizing patient-reported gluten tolerance experiences across restaurants, cafés, and cities worldwide. Built with Leaflet.js and powered by a moderated Google Forms + Google Sheets pipeline.
 
-- **Live Standalone Map:** `https://catebarry.github.io/gluten-map/`
-- **Embeddable Map (Header Hidden):** `https://catebarry.github.io/gluten-map/?embed=1`
-- **Submission Form:** `https://docs.google.com/forms/d/e/1FAIpQLSfaPLZ9hZyHF7ltlOxbigcDf0xU8wInOh7pZye_mi765eKnOQ/viewform?usp=header`
+- **Live Standalone Map:** https://catebarry.github.io/gluten-map/
+- **Embeddable Map (Header Hidden):** https://catebarry.github.io/gluten-map/?embed=1
+- **Submission Form:** https://docs.google.com/forms/d/e/1FAIpQLSfaPLZ9hZyHF7ltlOxbigcDf0xU8wInOh7pZye_mi765eKnOQ/viewform?usp=header
 - **Moderation:** Managed via private Google Sheet
 
 ---
