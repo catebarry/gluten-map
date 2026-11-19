@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    body { margin: 0; font-family: system-ui, -apple-system, sans-serif; }
+    #map { width: 100%; height: 600px; border-radius: 8px; }
+    .custom-pin { background: none; border: none; }
+    .custom-pin svg {
+      display: block;
+      filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35));
+      transition: transform 0.12s ease;
+      transform-origin: 50% 100%;
+    }
+    .custom-pin:hover svg { transform: scale(1.18); }
+    .legend {
+      background: white; padding: 10px 14px; border-radius: 6px;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.2); line-height: 1.7; font-size: 13px;
+    }
+    .legend-item { display: flex; align-items: center; gap: 7px; }
+  </style>
+</head>
+<body>
+    <div id="standalone-header" style="padding: 16px 20px; border-bottom: 1px solid #e5e7eb;">
+    <h2 style="margin: 0 0 6px; font-size: 20px;">Crowdsourced Gluten Sensitivity Map</h2>
+    <p style="margin: 0; color: #4b5563; font-size: 14px;">
+        Patient-reported dining experiences across the world.
+    </p>
+    </div>
+
+    <div style="position: relative;">
+    <a href="https://docs.google.com/forms/d/e/1FAIpQLSfaPLZ9hZyHF7ltlOxbigcDf0xU8wInOh7pZye_mi765eKnOQ/viewform?usp=header" target="_blank" rel="noopener"
+        style="position: absolute; top: 12px; right: 12px; z-index: 1000; background: #111827; color: #fff;
+                padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 600;
+                text-decoration: none; box-shadow: 0 2px 6px rgba(0,0,0,0.25);">
+        + Add a Pin
+    </a>
+    <div id="map"></div>
+    </div>
+
+    <script>
+    // so that the header is hidden when the map is embedded in an iframe
+    if (new URLSearchParams(window.location.search).get("embed") === "1") {
+        document.getElementById("standalone-header").style.display = "none";
+    }
+    </script>
+
+  <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+    <script>
+    // "Public Map Data" published CSV link:
+    const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT_6TEWTxBL2Na9ONCYgh_yO11Kvyp5GjLgc8grSspF9kxzEtT8MhWe3XlZ79TagHHAe5_OtmqXFMS7/pub?gid=1326524182&single=true&output=csv";
+
+    // Match column headers from Row 1 of Sheet:
+    const COLS = {
+      name: "Name",
+      city: "City/State",
+      country: "Country",
+      rating: "Rating",
+      notes: "Description",
+      lat: "Latitude",
+      lng: "Longitude"
+    };
+
+    // Match exact Google Form rating strings to pin colors:
+    const COLORS = {
+      "Symptom-Free": "#2ecc71",
+      "Mild Symptoms": "#f1c40f",
+      "Severe Symptoms": "#e74c3c"
+    };
+
+    const map = L.map("map").setView([25, 0], 2);
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19
+    }).addTo(map);
+
+    // Individual layer group (no clustering at any zoom level)
+    const pinLayer = L.featureGroup().addTo(map);
+
+    function pinSvg(color, width = 28, height = 38) {
+      return `
+        <svg width="${width}" height="${height}" viewBox="0 0 28 38" xmlns="http://www.w3.org/2000/svg">
+          <path d="M14 1C6.82 1 1 6.82 1 14c0 9.75 13 23 13 23s13-13.25 13-23C27 6.82 21.18 1 14 1z"
+                fill="${color}"/>
+            <circle cx="14" cy="14" r="5" fill="#ffffff" fill-opacity="0.9"/>
+        </svg>
+      `;
+    }
+
+    function makePin(color) {
+      return L.divIcon({
+        className: "custom-pin",
+        html: pinSvg(color),
+        iconSize: [28, 38],
+        iconAnchor: [14, 38],   // Anchors the sharp tip directly on the restaurant's lat/lng
+        popupAnchor: [0, -34]
+      });
+    }
+
+    Papa.parse(CSV_URL, {
+      download: true,
+      header: true,
+      skipEmptyLines: true,
+      complete: function(results) {
+        results.data.forEach(row => {
+          const lat = parseFloat(row[COLS.lat]);
+          const lng = parseFloat(row[COLS.lng]);
+          if (isNaN(lat) || isNaN(lng)) return;
+
+          const rating = (row[COLS.rating] || "").trim();
+          const color = COLORS[rating] || "#7f8c8d";
+          const popupHtml = `
+            <div style="max-width:240px;font-size:13px;line-height:1.4;">
+              <strong>${row[COLS.name] || "Unnamed Place"}</strong><br/>
+              <span style="color:#666;">${[row[COLS.city], row[COLS.country]].filter(Boolean).join(", ")}</span><br/>
+              <div style="margin:6px 0;font-weight:600;color:${color};">● ${rating}</div>
+              <div>${row[COLS.notes] || ""}</div>
+            </div>
+          `;
+
+          L.marker([lat, lng], {
+            icon: makePin(color),
+            riseOnHover: true     // Brings overlapping pins to the front when hovered
+          })
+            .bindPopup(popupHtml)
+            .addTo(pinLayer);
+        });
+      }
+    });
+
+    const legend = L.control({ position: "bottomright" });
+    legend.onAdd = function() {
+      const div = L.DomUtil.create("div", "legend");
+      div.innerHTML = Object.entries(COLORS)
+        .map(([label, hex]) => `<div class="legend-item">${pinSvg(hex, 14, 19)}<span>${label}</span></div>`)
+        .join("");
+      return div;
+    };
+    legend.addTo(map);
+  </script>
+</body>
+</html>
