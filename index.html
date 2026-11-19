@@ -5,8 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
-    body { margin: 0; font-family: system-ui, -apple-system, sans-serif; }
-    #map { width: 100%; height: 600px; border-radius: 8px; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    #map {
+      width: 100%;
+      height: 88vh;
+    }
     .custom-pin { background: none; border: none; }
     .custom-pin svg {
       display: block;
@@ -24,34 +30,29 @@
 </head>
 <body>
     <div id="standalone-header" style="padding: 16px 20px; border-bottom: 1px solid #e5e7eb;">
-    <h2 style="margin: 0 0 6px; font-size: 20px;">Crowdsourced Gluten Sensitivity Map</h2>
-    <p style="margin: 0; color: #4b5563; font-size: 14px;">
-        Patient-reported dining experiences across the world.
-    </p>
+      <h2 style="margin: 0 0 6px; font-size: 20px;">Crowdsourced Gluten Sensitivity Map</h2>
+      <p style="margin: 0; color: #4b5563; font-size: 14px;">
+          Patient-reported dining experiences across the world.
+      </p>
     </div>
 
-    <div style="position: relative;">
-    <a href="https://docs.google.com/forms/d/e/1FAIpQLSfaPLZ9hZyHF7ltlOxbigcDf0xU8wInOh7pZye_mi765eKnOQ/viewform?usp=header" target="_blank" rel="noopener"
-        style="position: absolute; top: 12px; right: 12px; z-index: 1000; background: #111827; color: #fff;
-                padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 600;
-                text-decoration: none; box-shadow: 0 2px 6px rgba(0,0,0,0.25);">
-        + Add a Pin
-    </a>
-    <div id="map"></div>
+    <div id="map-wrapper">
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLSfaPLZ9hZyHF7ltlOxbigcDf0xU8wInOh7pZye_mi765eKnOQ/viewform?usp=header" target="_blank" rel="noopener"
+            style="position: absolute; top: 12px; right: 12px; z-index: 1000; background: #111827; color: #fff;
+                    padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 600;
+                    text-decoration: none; box-shadow: 0 2px 6px rgba(0,0,0,0.25);">
+            + Add a Pin
+        </a>
+        <div id="map"></div>
     </div>
-
-    <script>
-    // so that the header is hidden when the map is embedded in an iframe
-    if (new URLSearchParams(window.location.search).get("embed") === "1") {
-        document.getElementById("standalone-header").style.display = "none";
-    }
-    </script>
-
-  <div id="map"></div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
     <script>
+        if (new URLSearchParams(window.location.search).get("embed") === "1") {
+        document.getElementById("standalone-header").style.display = "none";
+        document.getElementById("map").style.height = "100vh";
+        }
     // "Public Map Data" published CSV link:
     const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT_6TEWTxBL2Na9ONCYgh_yO11Kvyp5GjLgc8grSspF9kxzEtT8MhWe3XlZ79TagHHAe5_OtmqXFMS7/pub?gid=1326524182&single=true&output=csv";
 
